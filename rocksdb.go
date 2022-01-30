@@ -35,6 +35,8 @@ func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	bbto.SetBlockCache(gorocksdb.NewLRUCache(1 << 30))
 	bbto.SetFilterPolicy(gorocksdb.NewBloomFilter(10))
 
+	opts := gorocksdb.NewDefaultOptions()
+
 	
 	// Config guidlines (kinda)
 	// https://github.com/cosmos/gorocksdb/blob/main/options.go	
