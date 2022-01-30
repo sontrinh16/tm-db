@@ -35,12 +35,38 @@ func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	bbto.SetBlockCache(gorocksdb.NewLRUCache(1 << 30))
 	bbto.SetFilterPolicy(gorocksdb.NewBloomFilter(10))
 
-	opts := gorocksdb.NewDefaultOptions()
+	
+	// Config guidlines (kinda)
+	// https://github.com/cosmos/gorocksdb/blob/main/options.go	
+	opts.SetAllowConcurrentMemtableWrites(true)
 	opts.SetBlockBasedTableFactory(bbto)
 	opts.SetCreateIfMissing(true)
 	opts.IncreaseParallelism(runtime.NumCPU())
 	// 1.5GB maximum memory use for writebuffer.
-	opts.OptimizeLevelStyleCompaction(512 * 1024 * 1024)
+	// Original values here describe 512MB, but it can use more
+	// Let's see what 5GB does, and drop the multiplying
+	// OptimizeLevelStyleCompaction takes bytes as its input
+	opts.OptimizeLevelStyleCompaction(536870912)
+	// Each write buffer is 64MB, and SetMaxWriteBufferNumber controls how many there are
+	// Default setting is two, I've gone with 256, meaning 16gb of RAM for this
+	opts.SetMaxWriteBufferNumber(256)
+
+	// Globally, how large can the write buffer be?
+	// I determined this value like: 64 * 256 * 1024 * 1024
+	// Should be 16gb.  Is it?  who knows.
+	opts.SetDbWriteBufferSize(17179869184)
+
+	// Rocks usually has "max open files" of 1000.  Let's give it 10000.
+	opts.SetMaxOpenFiles(10000)
+	// How many write buffers need to be merged together before commiting the individual write buffers to disk
+	opts.SetMinWriteBufferNumberToMerge(5)
+	// Basically: determine levels dynamically.  dunno what this will do.
+	opts.SetLevelCompactionDynamicLevelBytes(true)
+	// Read from memory?
+	opts.SetAllowMmapReads(true)
+	// Write while still in memory before comitting to disk?
+	opts.SetAllowMmapWrites(true)
+	
 	return NewRocksDBWithOptions(name, dir, opts)
 }
 
