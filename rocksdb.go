@@ -27,6 +27,26 @@ type RocksDB struct {
 
 var _ DB = (*RocksDB)(nil)
 
+/*
+func NewRocksDB(name string, dir string) (*RocksDB, error) {
+	// default rocksdb option, good enough for most cases, including heavy workloads.
+	// 1GB table cache, 512MB write buffer(may use 50% more on heavy workloads).
+	// compression: snappy as default, need to -lsnappy to enable.
+	bbto := gorocksdb.NewDefaultBlockBasedTableOptions()
+	bbto.SetBlockCache(gorocksdb.NewLRUCache(1 << 30))
+	bbto.SetFilterPolicy(gorocksdb.NewBloomFilter(10))
+
+	opts := gorocksdb.NewDefaultOptions()
+	opts.SetBlockBasedTableFactory(bbto)
+	opts.SetCreateIfMissing(true)
+	opts.IncreaseParallelism(runtime.NumCPU())
+	// 1.5GB maximum memory use for writebuffer.
+	opts.OptimizeLevelStyleCompaction(512 * 1024 * 1024)
+	return NewRocksDBWithOptions(name, dir, opts)
+}
+
+*/
+
 func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	// default rocksdb option, good enough for most cases, including heavy workloads.
 	// 1GB table cache, 512MB write buffer(may use 50% more on heavy workloads).
@@ -48,7 +68,7 @@ func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	// Original values here describe 512MB, but it can use more
 	// Let's see what 5GB does, and drop the multiplying
 	// OptimizeLevelStyleCompaction takes bytes as its input
-	opts.OptimizeLevelStyleCompaction(536870912)
+	opts.OptimizeLevelStyleCompaction(512 * 1024 * 1024)
 	// Each write buffer is 64MB, and SetMaxWriteBufferNumber controls how many there are
 	// Default setting is two, I've gone with 256, meaning 16gb of RAM for this
 	opts.SetMaxWriteBufferNumber(256)
@@ -61,13 +81,13 @@ func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	// Rocks usually has "max open files" of 1000.  Let's give it 10000.
 	opts.SetMaxOpenFiles(10000)
 	// How many write buffers need to be merged together before commiting the individual write buffers to disk
-	opts.SetMinWriteBufferNumberToMerge(5)
+//	opts.SetMinWriteBufferNumberToMerge(5)
 	// Basically: determine levels dynamically.  dunno what this will do.
-	opts.SetLevelCompactionDynamicLevelBytes(true)
+//	opts.SetLevelCompactionDynamicLevelBytes(true)
 	// Read from memory?
-	opts.SetAllowMmapReads(true)
+//	opts.SetAllowMmapReads(true)
 	// Write while still in memory before comitting to disk?
-	opts.SetAllowMmapWrites(true)
+//	opts.SetAllowMmapWrites(true)
 	
 	return NewRocksDBWithOptions(name, dir, opts)
 }
