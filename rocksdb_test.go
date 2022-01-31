@@ -1,3 +1,4 @@
+//go:build rocksdb
 // +build rocksdb
 
 package db
@@ -30,6 +31,18 @@ func TestRocksDBStats(t *testing.T) {
 	defer cleanupDBDir(dir, name)
 
 	assert.NotEmpty(t, db.Stats())
+}
+
+func TestRocksDBBackendWithOptionsFile(t *testing.T) {
+	name := fmt.Sprintf("test_options_file.db")
+	//dir := os.TempDir()
+	dir := "./data"
+	db, err := NewDB(name, RocksDBBackend, dir)
+	require.NoError(t, err)
+	defer cleanupDBDir(dir, name)
+
+	_, ok := db.(*RocksDB)
+	assert.True(t, ok)
 }
 
 // TODO: Add tests for rocksdb

@@ -1,13 +1,15 @@
+//go:build rocksdb
 // +build rocksdb
 
 package db
 
 import (
 	"fmt"
+	"github.com/tecbot/gorocksdb"
+	"gopkg.in/ini.v1"
 	"path/filepath"
 	"runtime"
-
-	"github.com/tecbot/gorocksdb"
+	"strings"
 )
 
 func init() {
@@ -35,13 +37,49 @@ func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	bbto.SetBlockCache(gorocksdb.NewLRUCache(1 << 30))
 	bbto.SetFilterPolicy(gorocksdb.NewBloomFilter(10))
 
-	opts := gorocksdb.NewDefaultOptions()
-	opts.SetBlockBasedTableFactory(bbto)
-	opts.SetCreateIfMissing(true)
-	opts.IncreaseParallelism(runtime.NumCPU())
+	base_opts := gorocksdb.NewDefaultOptions()
+	base_opts.SetBlockBasedTableFactory(bbto)
+	base_opts.SetCreateIfMissing(true)
+	base_opts.IncreaseParallelism(runtime.NumCPU())
 	// 1.5GB maximum memory use for writebuffer.
-	opts.OptimizeLevelStyleCompaction(512 * 1024 * 1024)
-	return NewRocksDBWithOptions(name, dir, opts)
+	base_opts.OptimizeLevelStyleCompaction(512 * 1024 * 1024)
+
+	// Options file have to be the same dir and the same name as the db with .ini extension
+	// eg., db path = /a/b/c.db => options file = /a/b/c.db.ini
+	opts_file := dir + "/" + name + ".ini"
+	if FileExists(opts_file) {
+		cfg, err := ini.Load(opts_file)
+		if err != nil {
+			return nil, err
+		}
+
+		// GetOptionsFromString supports DBOptions and CFOptions only
+		dbopts := cfg.Section("DBOptions")
+		cfopts := cfg.Section("CFOptions \"default\"")
+
+		lines := []string{}
+		for k, v := range dbopts.KeysHash() {
+			str_pair := fmt.Sprintf("%s=%s", k, v)
+			lines = append(lines, str_pair)
+		}
+		for k, v := range cfopts.KeysHash() {
+			str_pair := fmt.Sprintf("%s=%s", k, v)
+			lines = append(lines, str_pair)
+		}
+
+		opts_str := strings.Join(lines, ";")
+		opts, err := gorocksdb.GetOptionsFromString(base_opts, opts_str)
+		if err != nil {
+			return nil, err
+		}
+
+		// there is "TableOptions/BlockBasedTable \"default\"" section, could also be used for bbto.
+
+		return NewRocksDBWithOptions(name, dir, opts)
+	}
+
+	// options file does *not* exist => using default options
+	return NewRocksDBWithOptions(name, dir, base_opts)
 }
 
 func NewRocksDBWithOptions(name string, dir string, opts *gorocksdb.Options) (*RocksDB, error) {
