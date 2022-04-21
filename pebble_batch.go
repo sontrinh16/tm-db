@@ -13,6 +13,7 @@ var _ Batch = (*pebbleDBBatch)(nil)
 
 func newPebbleDBBatch(db *PebbleDB) *pebbleDBBatch {
 	return &pebbleDBBatch{
+		db:    *PebbleDB,
 		batch: db.db.NewBatch(),
 	}
 }
