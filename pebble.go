@@ -153,6 +153,7 @@ func (db *PebbleDB) DB() *pebble.DB {
 
 // Close implements DB.
 func (db PebbleDB) Close() error {
+	db.db.Flush()
 	db.db.Close()
 	return nil
 }
