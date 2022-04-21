@@ -5,6 +5,8 @@ package db
 import (
 	"fmt"
 	"path/filepath"
+	"github.com/cockroachdb/pebble/bloom"
+
 
 	"github.com/cockroachdb/pebble"
 )
