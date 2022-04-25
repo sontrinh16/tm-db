@@ -34,13 +34,8 @@ func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	// 1GB table cache, 512MB write buffer(may use 50% more on heavy workloads).
 	// compression: snappy as default, need to -lsnappy to enable.
 	bbto := grocksdb.NewDefaultBlockBasedTableOptions()
-	cache := grocksdb.NewLRUCache(1 << 30)
-	bbto.SetBlockCache(cache)
 	filter := grocksdb.NewBloomFilter(10)
 	bbto.SetFilterPolicy(filter)
-	bbto.SetCacheIndexAndFilterBlocks(true)
-	bbto.SetPinL0FilterAndIndexBlocksInCache(true)
-
 	opts := grocksdb.NewDefaultOptions()
 	opts.SetBlockBasedTableFactory(bbto)
 	// SetMaxOpenFiles to 4096 seems to provide a reliable performance boost
