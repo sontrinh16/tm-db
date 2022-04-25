@@ -47,7 +47,6 @@ func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	opts.SetMaxOpenFiles(8192)
 	opts.SetCreateIfMissing(true)
 	opts.IncreaseParallelism(runtime.NumCPU())
-	opts.OptimizeLevelStyleCompaction(512 * 1024 * 1024)
 
 	dbPath := filepath.Join(dir, name+".db")
 	db, err := grocksdb.OpenDb(opts, dbPath)
