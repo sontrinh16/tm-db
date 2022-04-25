@@ -1,3 +1,4 @@
+//go:build rocksdb
 // +build rocksdb
 
 package db
@@ -19,10 +20,11 @@ func init() {
 
 // RocksDB is a RocksDB backend.
 type RocksDB struct {
-	db     *grocksdb.DB
-	ro     *grocksdb.ReadOptions
-	wo     *grocksdb.WriteOptions
-	woSync *grocksdb.WriteOptions
+	db     *gorocksdb.DB
+	ro     *gorocksdb.ReadOptions
+	wo     *gorocksdb.WriteOptions
+	woSync *gorocksdb.WriteOptions
+	cache  *gorocksdb.Cache
 }
 
 var _ DB = (*RocksDB)(nil)
@@ -31,20 +33,21 @@ func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	// default rocksdb option, good enough for most cases, including heavy workloads.
 	// 1GB table cache, 512MB write buffer(may use 50% more on heavy workloads).
 	// compression: snappy as default, need to -lsnappy to enable.
-	bbto := grocksdb.NewDefaultBlockBasedTableOptions()
-	bbto.SetBlockCache(grocksdb.NewLRUCache(1 << 30))
-	bbto.SetFilterPolicy(grocksdb.NewBloomFilter(10))
+	bbto := gorocksdb.NewDefaultBlockBasedTableOptions()
+	cache := gorocksdb.NewLRUCache(1 << 30)
+	bbto.SetBlockCache(cache)
+	filter := gorocksdb.NewBloomFilter(10)
+	bbto.SetFilterPolicy(filter)
+	bbto.SetCacheIndexAndFilterBlocks(true)
+	bbto.SetPinL0FilterAndIndexBlocksInCache(true)
 
 	opts := grocksdb.NewDefaultOptions()
 	opts.SetBlockBasedTableFactory(bbto)
 	// SetMaxOpenFiles to 4096 seems to provide a reliable performance boost
-	opts.SetMaxOpenFiles(4096)
+	opts.SetMaxOpenFiles(8192)
 	opts.SetCreateIfMissing(true)
 	opts.IncreaseParallelism(runtime.NumCPU())
-	// 1.5GB maximum memory use for writebuffer.
 	opts.OptimizeLevelStyleCompaction(512 * 1024 * 1024)
-	return NewRocksDBWithOptions(name, dir, opts)
-}
 
 func NewRocksDBWithOptions(name string, dir string, opts *grocksdb.Options) (*RocksDB, error) {
 	dbPath := filepath.Join(dir, name+".db")
@@ -61,7 +64,9 @@ func NewRocksDBWithOptions(name string, dir string, opts *grocksdb.Options) (*Ro
 		ro:     ro,
 		wo:     wo,
 		woSync: woSync,
+		cache:  cache,
 	}
+
 	return database, nil
 }
 
@@ -149,6 +154,7 @@ func (db *RocksDB) Close() error {
 	db.ro.Destroy()
 	db.wo.Destroy()
 	db.woSync.Destroy()
+	db.cache.Destroy()
 	db.db.Close()
 	return nil
 }
