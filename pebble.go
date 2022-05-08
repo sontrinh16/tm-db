@@ -5,8 +5,8 @@ package db
 import (
 	"fmt"
 	"path/filepath"
-	"github.com/cockroachdb/pebble/bloom"
 
+	"github.com/cockroachdb/pebble/bloom"
 
 	"github.com/cockroachdb/pebble"
 )
@@ -27,35 +27,35 @@ var _ DB = (*PebbleDB)(nil)
 
 func NewPebbleDB(name string, dir string) (DB, error) {
 	dbPath := filepath.Join(dir, name+".db")
-		cache := pebble.NewCache(1024 * 1024 * 128)
-		defer cache.Unref()
+	cache := pebble.NewCache(1024 * 1024 * 128)
+	defer cache.Unref()
 	opts := &pebble.Options{
-				Cache:                       cache,
-				FormatMajorVersion:          pebble.FormatNewest,
-				L0CompactionThreshold:       2,
-				L0StopWritesThreshold:       1000,
-				LBaseMaxBytes:               64 << 20, // 64 MB
-				Levels:                      make([]pebble.LevelOptions, 7),
-				MaxConcurrentCompactions:    3,
-				MaxOpenFiles:                1024,
-				MemTableSize:                64 << 20,
-				MemTableStopWritesThreshold: 4,
+		Cache:                       cache,
+		FormatMajorVersion:          pebble.FormatNewest,
+		L0CompactionThreshold:       2,
+		L0StopWritesThreshold:       1000,
+		LBaseMaxBytes:               64 << 20, // 64 MB
+		Levels:                      make([]pebble.LevelOptions, 7),
+		MaxConcurrentCompactions:    3,
+		MaxOpenFiles:                1024,
+		MemTableSize:                64 << 20,
+		MemTableStopWritesThreshold: 4,
 	}
-	
-		for i := 0; i < len(opts.Levels); i++ {
-			l := &opts.Levels[i]
-			l.BlockSize = 32 << 10       // 32 KB
-			l.IndexBlockSize = 256 << 10 // 256 KB
-			l.FilterPolicy = bloom.FilterPolicy(10)
-			l.FilterType = pebble.TableFilter
-			if i > 0 {
-				l.TargetFileSize = opts.Levels[i-1].TargetFileSize * 2
-			}
-			l.EnsureDefaults()
+
+	for i := 0; i < len(opts.Levels); i++ {
+		l := &opts.Levels[i]
+		l.BlockSize = 32 << 10       // 32 KB
+		l.IndexBlockSize = 256 << 10 // 256 KB
+		l.FilterPolicy = bloom.FilterPolicy(10)
+		l.FilterType = pebble.TableFilter
+		if i > 0 {
+			l.TargetFileSize = opts.Levels[i-1].TargetFileSize * 2
 		}
-	
-		opts.Levels[6].FilterPolicy = nil
-		opts.FlushSplitBytes = opts.Levels[0].TargetFileSize
+		l.EnsureDefaults()
+	}
+
+	opts.Levels[6].FilterPolicy = nil
+	opts.FlushSplitBytes = opts.Levels[0].TargetFileSize
 
 	opts.EnsureDefaults()
 
@@ -183,8 +183,8 @@ func (db *PebbleDB) Stats() map[string]string {
 		}
 	*/
 	stats := make(map[string]string, 1)
-        stats["Metrics"] = fmt.Sprint(db.db.Metrics())
-        return stats
+	stats["Metrics"] = fmt.Sprint(db.db.Metrics())
+	return stats
 }
 
 // NewBatch implements DB.
