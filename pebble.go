@@ -142,7 +142,7 @@ func (db PebbleDB) DeleteSync(key []byte) error {
 	}
 	err := db.db.Delete(key, pebble.Sync)
 	if err != nil {
-		return nil
+		return err
 	}
 	return nil
 }
