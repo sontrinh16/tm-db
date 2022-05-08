@@ -9,28 +9,20 @@ import (
 )
 
 type pebbleDBIterator struct {
-	source     *pebble.Iterator
-	start, end []byte
-	isReverse  bool
-	isInvalid  bool
+	iterator  *pebble.Iterator
+	isReverse bool
+	isInvalid bool
 }
 
 var _ Iterator = (*pebbleDBIterator)(nil)
 
-func newPebbleDBIterator(source *pebble.Iterator, start, end []byte, isReverse bool) *pebbleDBIterator {
-	if isReverse {
-		if end == nil {
-			source.Last()
-		}
-	} else {
-		if start == nil {
-			source.First()
-		}
-	}
+func newPebbleDBIterator(db *pebble.DB, start, end []byte, isReverse bool) *pebbleDBIterator {
+	it := db.NewIter(&pebble.IterOptions{
+		LowerBound: start,
+		UpperBound: end,
+	})
 	return &pebbleDBIterator{
-		source:    source,
-		start:     start,
-		end:       end,
+		iterator:  it,
 		isReverse: isReverse,
 		isInvalid: false,
 	}
@@ -38,7 +30,7 @@ func newPebbleDBIterator(source *pebble.Iterator, start, end []byte, isReverse b
 
 // Domain implements Iterator.
 func (itr *pebbleDBIterator) Domain() ([]byte, []byte) {
-	return itr.start, itr.end
+	return itr.iterator.RangeBounds()
 }
 
 // Valid implements Iterator.
@@ -49,23 +41,22 @@ func (itr *pebbleDBIterator) Valid() bool {
 	}
 
 	// If source has error, invalid.
-	if err := itr.source.Error(); err != nil {
+	if err := itr.iterator.Error(); err != nil {
 		itr.isInvalid = true
 
 		return false
 	}
 
 	// If source is invalid, invalid.
-	if !itr.source.Valid() {
+	if !itr.iterator.Valid() {
 		itr.isInvalid = true
 
 		return false
 	}
 
+	start, end := itr.iterator.RangeBounds()
 	// If key is end or past it, invalid.
-	start := itr.start
-	end := itr.end
-	key := itr.source.Key()
+	key := itr.iterator.Key()
 	if itr.isReverse {
 		if start != nil && bytes.Compare(key, start) < 0 {
 			itr.isInvalid = true
@@ -87,33 +78,33 @@ func (itr *pebbleDBIterator) Valid() bool {
 // Key implements Iterator.
 func (itr *pebbleDBIterator) Key() []byte {
 	itr.assertIsValid()
-	return itr.source.Key()
+	return itr.iterator.Key()
 }
 
 // Value implements Iterator.
 func (itr *pebbleDBIterator) Value() []byte {
 	itr.assertIsValid()
-	return itr.source.Value()
+	return itr.iterator.Value()
 }
 
 // Next implements Iterator.
 func (itr pebbleDBIterator) Next() {
 	itr.assertIsValid()
 	if itr.isReverse {
-		itr.source.Prev()
+		itr.iterator.Prev()
 	} else {
-		itr.source.Next()
+		itr.iterator.Next()
 	}
 }
 
 // Error implements Iterator.
 func (itr *pebbleDBIterator) Error() error {
-	return itr.source.Error()
+	return itr.iterator.Error()
 }
 
 // Close implements Iterator.
 func (itr *pebbleDBIterator) Close() error {
-	err := itr.source.Close()
+	err := itr.iterator.Close()
 	if err != nil {
 		return err
 	}
