@@ -16,6 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: ghcr.io/faddat/cosmos
+    continue-on-error: true
     env:
       INTERVAL: 1000
       GAIAD_STATESYNC_ENABLE: true
