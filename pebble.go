@@ -3,10 +3,9 @@
 package db
 
 import (
+	"bytes"
 	"fmt"
 	"path/filepath"
-
-	"github.com/cockroachdb/pebble/bloom"
 
 	"github.com/cockroachdb/pebble"
 )
@@ -27,35 +26,35 @@ var _ DB = (*PebbleDB)(nil)
 
 func NewPebbleDB(name string, dir string) (DB, error) {
 	dbPath := filepath.Join(dir, name+".db")
-	cache := pebble.NewCache(1024 * 1024 * 128)
-	defer cache.Unref()
+	//	cache := pebble.NewCache(1024 * 1024 * 32)
+	//	defer cache.Unref()
 	opts := &pebble.Options{
-		Cache:                       cache,
-		FormatMajorVersion:          pebble.FormatNewest,
-		L0CompactionThreshold:       2,
-		L0StopWritesThreshold:       1000,
-		LBaseMaxBytes:               64 << 20, // 64 MB
-		Levels:                      make([]pebble.LevelOptions, 7),
-		MaxConcurrentCompactions:    3,
-		MaxOpenFiles:                1024,
-		MemTableSize:                64 << 20,
-		MemTableStopWritesThreshold: 4,
+		//		Cache:                       cache,
+		//		FormatMajorVersion:          pebble.FormatNewest,
+		//		L0CompactionThreshold:       2,
+		//		L0StopWritesThreshold:       1000,
+		//		LBaseMaxBytes:               64 << 20, // 64 MB
+		//		Levels:                      make([]pebble.LevelOptions, 7),
+		//		MaxConcurrentCompactions:    3,
+		//		MaxOpenFiles:                1024,
+		//		MemTableSize:                64 << 20,
+		//		MemTableStopWritesThreshold: 4,
 	}
-
-	for i := 0; i < len(opts.Levels); i++ {
-		l := &opts.Levels[i]
-		l.BlockSize = 32 << 10       // 32 KB
-		l.IndexBlockSize = 256 << 10 // 256 KB
-		l.FilterPolicy = bloom.FilterPolicy(10)
-		l.FilterType = pebble.TableFilter
-		if i > 0 {
-			l.TargetFileSize = opts.Levels[i-1].TargetFileSize * 2
+	/*
+		for i := 0; i < len(opts.Levels); i++ {
+			l := &opts.Levels[i]
+			l.BlockSize = 32 << 10       // 32 KB
+			l.IndexBlockSize = 256 << 10 // 256 KB
+			l.FilterPolicy = bloom.FilterPolicy(10)
+			l.FilterType = pebble.TableFilter
+			if i > 0 {
+				l.TargetFileSize = opts.Levels[i-1].TargetFileSize * 2
+			}
+			l.EnsureDefaults()
 		}
-		l.EnsureDefaults()
-	}
-
-	opts.Levels[6].FilterPolicy = nil
-	opts.FlushSplitBytes = opts.Levels[0].TargetFileSize
+	*/
+	//	opts.Levels[6].FilterPolicy = nil
+	//	opts.FlushSplitBytes = opts.Levels[0].TargetFileSize
 
 	opts.EnsureDefaults()
 
@@ -142,7 +141,7 @@ func (db PebbleDB) DeleteSync(key []byte) error {
 	}
 	err := db.db.Delete(key, pebble.Sync)
 	if err != nil {
-		return err
+		return nil
 	}
 	return nil
 }
@@ -181,9 +180,7 @@ func (db *PebbleDB) Stats() map[string]string {
 			stats[key] = db.(key)
 		}
 	*/
-	stats := make(map[string]string, 1)
-	stats["Metrics"] = fmt.Sprint(db.db.Metrics())
-	return stats
+	return nil
 }
 
 // NewBatch implements DB.
@@ -196,7 +193,14 @@ func (db *PebbleDB) Iterator(start, end []byte) (Iterator, error) {
 	if (start != nil && len(start) == 0) || (end != nil && len(end) == 0) {
 		return nil, errKeyEmpty
 	}
-	return newPebbleDBIterator(db.db, start, end, false), nil
+	o := pebble.IterOptions{
+		LowerBound: start,
+		UpperBound: end,
+	}
+	itr := db.db.NewIter(&o)
+	itr.First()
+
+	return newPebbleDBIterator(itr, start, end, false), nil
 }
 
 // ReverseIterator implements DB.
@@ -204,5 +208,211 @@ func (db *PebbleDB) ReverseIterator(start, end []byte) (Iterator, error) {
 	if (start != nil && len(start) == 0) || (end != nil && len(end) == 0) {
 		return nil, errKeyEmpty
 	}
-	return newPebbleDBIterator(db.db, start, end, true), nil
+	o := pebble.IterOptions{
+		LowerBound: start,
+		UpperBound: end,
+	}
+	itr := db.db.NewIter(&o)
+	itr.Last()
+	return newPebbleDBIterator(itr, start, end, true), nil
+}
+
+var _ Batch = (*pebbleDBBatch)(nil)
+
+type pebbleDBBatch struct {
+	db    *PebbleDB
+	batch *pebble.Batch
+}
+
+var _ Batch = (*pebbleDBBatch)(nil)
+
+func newPebbleDBBatch(db *PebbleDB) *pebbleDBBatch {
+	return &pebbleDBBatch{
+		batch: db.db.NewBatch(),
+	}
+}
+
+// Set implements Batch.
+func (b *pebbleDBBatch) Set(key, value []byte) error {
+	if len(key) == 0 {
+		return errKeyEmpty
+	}
+	if value == nil {
+		return errValueNil
+	}
+	if b.batch == nil {
+		return errBatchClosed
+	}
+	b.batch.Set(key, value, nil)
+	return nil
+}
+
+// Delete implements Batch.
+func (b *pebbleDBBatch) Delete(key []byte) error {
+	if len(key) == 0 {
+		return errKeyEmpty
+	}
+	if b.batch == nil {
+		return errBatchClosed
+	}
+	b.batch.Delete(key, nil)
+	return nil
+}
+
+// Write implements Batch.
+func (b *pebbleDBBatch) Write() error {
+	if b.batch == nil {
+		return errBatchClosed
+	}
+	err := b.batch.Commit(pebble.NoSync)
+	if err != nil {
+		return err
+	}
+	// Make sure batch cannot be used afterwards. Callers should still call Close(), for errors.
+
+	return b.Close()
+}
+
+// WriteSync implements Batch.
+func (b *pebbleDBBatch) WriteSync() error {
+	if b.batch == nil {
+		return errBatchClosed
+	}
+	err := b.batch.Commit(pebble.Sync)
+	if err != nil {
+		return err
+	}
+	// Make sure batch cannot be used afterwards. Callers should still call Close(), for errors.
+	return b.Close()
+}
+
+// Close implements Batch.
+func (b *pebbleDBBatch) Close() error {
+	if b.batch != nil {
+		err := b.batch.Close()
+		if err != nil {
+			return err
+		}
+		b.batch = nil
+	}
+
+	return nil
+}
+
+type pebbleDBIterator struct {
+	source     *pebble.Iterator
+	start, end []byte
+	isReverse  bool
+	isInvalid  bool
+}
+
+var _ Iterator = (*pebbleDBIterator)(nil)
+
+func newPebbleDBIterator(source *pebble.Iterator, start, end []byte, isReverse bool) *pebbleDBIterator {
+	if isReverse {
+		if end == nil {
+			source.Last()
+		}
+	} else {
+		if start == nil {
+			source.First()
+		}
+	}
+	return &pebbleDBIterator{
+		source:    source,
+		start:     start,
+		end:       end,
+		isReverse: isReverse,
+		isInvalid: false,
+	}
+}
+
+// Domain implements Iterator.
+func (itr *pebbleDBIterator) Domain() ([]byte, []byte) {
+	return itr.start, itr.end
+}
+
+// Valid implements Iterator.
+func (itr *pebbleDBIterator) Valid() bool {
+	// Once invalid, forever invalid.
+	if itr.isInvalid {
+		return false
+	}
+
+	// If source has error, invalid.
+	if err := itr.source.Error(); err != nil {
+		itr.isInvalid = true
+
+		return false
+	}
+
+	// If source is invalid, invalid.
+	if !itr.source.Valid() {
+		itr.isInvalid = true
+
+		return false
+	}
+
+	// If key is end or past it, invalid.
+	start := itr.start
+	end := itr.end
+	key := itr.source.Key()
+	if itr.isReverse {
+		if start != nil && bytes.Compare(key, start) < 0 {
+			itr.isInvalid = true
+
+			return false
+		}
+	} else {
+		if end != nil && bytes.Compare(end, key) <= 0 {
+			itr.isInvalid = true
+
+			return false
+		}
+	}
+
+	// It's valid.
+	return true
+}
+
+// Key implements Iterator.
+func (itr *pebbleDBIterator) Key() []byte {
+	itr.assertIsValid()
+	return itr.source.Key()
+}
+
+// Value implements Iterator.
+func (itr *pebbleDBIterator) Value() []byte {
+	itr.assertIsValid()
+	return itr.source.Value()
+}
+
+// Next implements Iterator.
+func (itr pebbleDBIterator) Next() {
+	itr.assertIsValid()
+	if itr.isReverse {
+		itr.source.Prev()
+	} else {
+		itr.source.Next()
+	}
+}
+
+// Error implements Iterator.
+func (itr *pebbleDBIterator) Error() error {
+	return itr.source.Error()
+}
+
+// Close implements Iterator.
+func (itr *pebbleDBIterator) Close() error {
+	err := itr.source.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (itr *pebbleDBIterator) assertIsValid() {
+	if !itr.Valid() {
+		panic("iterator is invalid")
+	}
 }
