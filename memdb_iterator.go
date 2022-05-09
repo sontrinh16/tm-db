@@ -3,8 +3,6 @@ package db
 import (
 	"bytes"
 	"context"
-
-	"github.com/tidwall/btree"
 )
 
 const (
@@ -55,41 +53,41 @@ func newMemDBIteratorMtxChoice(db *MemDB, start []byte, end []byte, reverse bool
 			skipEqual     []byte
 			abortLessThan []byte
 		)
-		visitor := func(i btree.Item) bool {
-			item := i.(*item)
-			if skipEqual != nil && bytes.Equal(item.key, skipEqual) {
+		visitor := func(i any) bool {
+			it := i.(*item)
+			if skipEqual != nil && bytes.Equal(it.key, skipEqual) {
 				skipEqual = nil
 				return true
 			}
-			if abortLessThan != nil && bytes.Compare(item.key, abortLessThan) == -1 {
+			if abortLessThan != nil && bytes.Compare(it.key, abortLessThan) == -1 {
 				return false
 			}
 			select {
 			case <-ctx.Done():
 				return false
-			case ch <- item:
+			case ch <- it:
 				return true
 			}
 		}
 		switch {
 		case start == nil && end == nil && !reverse:
-			db.btree.Ascend(visitor)
+			db.btree.Ascend(nil, visitor)
 		case start == nil && end == nil && reverse:
-			db.btree.Descend(visitor)
+			db.btree.Descend(nil, visitor)
 		case end == nil && !reverse:
 			// must handle this specially, since nil is considered less than anything else
-			db.btree.AscendGreaterOrEqual(newKey(start), visitor)
+			db.btree.Ascend(newKey(start), visitor)
 		case !reverse:
-			db.btree.AscendRange(newKey(start), newKey(end), visitor)
+			db.btree.Ascend(newKey(start), visitor)
 		case end == nil:
 			// abort after start, since we use [start, end) while btree uses (start, end]
 			abortLessThan = start
-			db.btree.Descend(visitor)
+			db.btree.Descend(nil, visitor)
 		default:
 			// skip end and abort after start, since we use [start, end) while btree uses (start, end]
 			skipEqual = end
 			abortLessThan = start
-			db.btree.DescendLessOrEqual(newKey(end), visitor)
+			db.btree.Descend(newKey(end), visitor)
 		}
 		close(ch)
 	}()

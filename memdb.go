@@ -20,13 +20,6 @@ type item struct {
 	value []byte
 }
 
-// Less implements btree.Item.
-func Less(other item) bool {
-	// this considers nil == []byte{}, but that's ok since we handle nil endpoints
-	// in iterators specially anyway
-	return bytes.Compare(i.key, other.(*item).key) == -1
-}
-
 func comparator(a, b item) bool {
 	return bytes.Compare((a.key), b.key) == -1
 }
@@ -49,15 +42,19 @@ func newPair(key, value []byte) *item {
 // important with MemDB.
 type MemDB struct {
 	mtx   sync.RWMutex
-	btree *btree.Generic[item]
+	btree *btree.BTree
 }
 
 var _ DB = (*MemDB)(nil)
 
+func less(a, b interface{}) bool {
+	return bytes.Compare(a.(*item).key, b.(*item).key) == -1
+}
+
 // NewMemDB creates a new in-memory database.
 func NewMemDB() *MemDB {
 	database := &MemDB{
-		btree: btree.NewGeneric[item](comparator),
+		btree: btree.New(less),
 	}
 
 	return database
@@ -81,12 +78,10 @@ func (db *MemDB) Has(key []byte) (bool, error) {
 	if len(key) == 0 {
 		return false, errKeyEmpty
 	}
-	if db.btree.Get(key) != nil {
-		return true, nil
-	}
 
-	if db.btree.Get(key) == nil {
-		return false, nil
+	value, _ := db.Get(key)
+	if value != nil {
+		return true, nil
 	}
 
 	return false, nil
@@ -147,8 +142,8 @@ func (db *MemDB) Close() error {
 
 // Print implements DB.
 func (db *MemDB) Print() error {
-	db.btree.Ascend(nil, func(i item) bool {
-		pitem := i
+	db.btree.Ascend(nil, func(i any) bool {
+		pitem := i.(*item)
 		fmt.Printf("[%X]:\t[%X]\n", pitem.key, pitem.value)
 		return true
 	})
