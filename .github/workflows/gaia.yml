@@ -32,13 +32,13 @@ jobs:
     steps:
       - run: git config --global --add safe.directory /__w/tendermint/tm-db
       - uses: actions/checkout@v3
-      - name: state sync gaia with ${{ database }}
+      - name: state sync gaia with ${{ matrix.database }}
         run: |
           cd ..
           git clone https://github.com/cosmos/gaia
           cd gaia
           go mod edit -replace github.com/tendermint/tm-db=../tm-db
-          go install -ldflags '-w -s -X github.com/cosmos/cosmos-sdk/types.DBBackend=${{ database }}' -tags ${{ database }} ./...
+          go install -ldflags '-w -s -X github.com/cosmos/cosmos-sdk/types.DBBackend=${{ matrix.database }}' -tags ${{ matrix.database }} ./...
           export LATEST_HEIGHT=$(curl -s https://cosmoshub.validator.network/block | jq -r .result.block.header.height);
           export BLOCK_HEIGHT=$(($LATEST_HEIGHT-$INTERVAL)) 
           export TRUST_HASH=$(curl -s "https://cosmoshub.validator.network/block?height=$BLOCK_HEIGHT" | jq -r .result.block_id.hash)
@@ -48,6 +48,6 @@ jobs:
           echo "TRUST HASH: $TRUST_HASH"
           gaiad init gaia-matrix
           cp /genesis.json ~/.gaiad/config/genesis.json
-          gaiad start --x-crisis-skip-assert-invariants --db_backend ${{ database }}
+          gaiad start --x-crisis-skip-assert-invariants --db_backend ${{ matrix.database }}
 
  
