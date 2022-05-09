@@ -15,7 +15,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ghcr.io/faddat/cosmos
+    container: ghcr.io/faddat/gaia
     continue-on-error: true
     env:
       INTERVAL: 1000
