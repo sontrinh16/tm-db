@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
   
   Pebble2:
     # The custom image here contains pre-built libraries for leveldb and
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
           
   
   Pebble3:
@@ -65,7 +65,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
           
   Pebble4:
     # The custom image here contains pre-built libraries for leveldb and
@@ -77,7 +77,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
           
           
   Pebble5:
@@ -90,7 +90,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
           
           
   Pebble6:
@@ -103,7 +103,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
           
           
   Pebble7:
@@ -116,7 +116,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
           
           
           
@@ -130,7 +130,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
           
   Pebble9:
     # The custom image here contains pre-built libraries for leveldb and
@@ -142,7 +142,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
           
           
   Pebble10:
@@ -155,7 +155,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
           
           
   Pebble11:
@@ -168,7 +168,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble12:
@@ -181,7 +181,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble13:
@@ -194,7 +194,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
   Pebble14:
     # The custom image here contains pre-built libraries for leveldb and
@@ -206,7 +206,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble15:
@@ -219,7 +219,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
   Pebble16:
     # The custom image here contains pre-built libraries for leveldb and
@@ -231,7 +231,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble17:
@@ -244,7 +244,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
   Pebble18:
     # The custom image here contains pre-built libraries for leveldb and
@@ -256,7 +256,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
   Pebble19:
     # The custom image here contains pre-built libraries for leveldb and
@@ -268,7 +268,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble20:
@@ -281,7 +281,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble21:
@@ -294,7 +294,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
   Pebble22:
     # The custom image here contains pre-built libraries for leveldb and
@@ -306,7 +306,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble23:
@@ -319,7 +319,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble24:
@@ -332,7 +332,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble25:
@@ -345,7 +345,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble26:
@@ -358,7 +358,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
   Pebble27:
     # The custom image here contains pre-built libraries for leveldb and
@@ -370,7 +370,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble28:
@@ -383,7 +383,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble29:
@@ -396,7 +396,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
   Pebble30:
     # The custom image here contains pre-built libraries for leveldb and
@@ -408,7 +408,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble31:
@@ -421,7 +421,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble32:
@@ -434,7 +434,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble33:
@@ -447,7 +447,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
   Pebble34:
@@ -460,7 +460,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
 
 
 
@@ -474,4 +474,4 @@ jobs:
       - uses: actions/checkout@v3
       - name: test & coverage report creation
         run: |
-          go test -count 5000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
+          go test -count 2000 -tags pebbledb -test.run ^TestDBIterator/pebbledb$
